@@ -37,6 +37,7 @@ const (
 	IF       = "If"
 	BINARY   = "Binary"
 	TUPLE    = "Tuple"
+	PRINT    = "Print"
 )
 
 func stringify(t Term) string {
@@ -139,6 +140,12 @@ type (
 		Kind     string   `json:"kind"`
 		First    Term     `json:"first"`
 		Second   Term     `json:"second"`
+		Location Location `json:"location"`
+	}
+
+	Print struct {
+		Kind     string   `json:"kind"`
+		Value    Term     `json:"value"`
 		Location Location `json:"location"`
 	}
 )

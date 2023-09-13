@@ -24,6 +24,8 @@ func eval(env Env, t Term) (Term, error) {
 	switch t.(type) {
 	case Int, Str, Bool:
 		return t, nil
+	case Let:
+		return t, nil
 	case Binary:
 		binary := t.(Binary)
 		switch binary.Op {
