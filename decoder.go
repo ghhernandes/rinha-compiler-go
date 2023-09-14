@@ -21,44 +21,6 @@ func (f *File) UnmarshalJSON(data []byte) error {
 	return err
 }
 
-func (op BinaryOp) UnmarshalJSON(data []byte) error {
-	var s string
-	if err := json.Unmarshal(data, &s); err != nil {
-		return err
-	}
-	switch s {
-	case "Add":
-		op = Add
-	case "Sub":
-		op = Sub
-	case "Mul":
-		op = Mul
-	case "Div":
-		op = Div
-	case "Rem":
-		op = Rem
-	case "Eq":
-		op = Eq
-	case "Neq":
-		op = Neq
-	case "Lt":
-		op = Lt
-	case "Gt":
-		op = Gt
-	case "Lte":
-		op = Lte
-	case "Gte":
-		op = Gte
-	case "And":
-		op = And
-	case "Or":
-		op = Or
-	default:
-		return fmt.Errorf("invalid binary operator: %s", s)
-	}
-	return nil
-}
-
 func unmarshalTerm(data []byte) (Term, error) {
 	var t struct {
 		Kind string `json:"kind"`
@@ -242,6 +204,21 @@ func unmarshalBinary(data []byte) (Binary, error) {
 		b   Binary
 		err error
 	)
+	opMap := map[string]BinaryOp{
+		"Add": Add,
+		"Sub": Sub,
+		"Mul": Mul,
+		"Div": Div,
+		"Rem": Rem,
+		"Eq":  Eq,
+		"Neq": Neq,
+		"Lt":  Lt,
+		"Gt":  Gt,
+		"Lte": Lte,
+		"Gte": Gte,
+		"And": And,
+		"Or":  Or,
+	}
 
 	if err := json.Unmarshal(data, &b); err != nil {
 		return Binary{}, err
@@ -256,6 +233,8 @@ func unmarshalBinary(data []byte) (Binary, error) {
 	if err != nil {
 		return Binary{}, err
 	}
+
+	b.Op = opMap[string(b.Op)]
 
 	b.Lhs, err = unmarshalTerm(bLhs)
 	if err != nil {

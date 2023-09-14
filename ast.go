@@ -6,24 +6,23 @@ import (
 
 type (
 	Term     any
-	Env      map[string]Term
-	BinaryOp int
+	BinaryOp string
 )
 
 const (
-	Add BinaryOp = iota + 1
-	Sub
-	Mul
-	Div
-	Rem
-	Eq
-	Neq
-	Lt
-	Gt
-	Lte
-	Gte
-	And
-	Or
+	Add BinaryOp = "Add"
+	Sub          = "Sub"
+	Mul          = "Mul"
+	Div          = "Div"
+	Rem          = "Rem"
+	Eq           = "Eq"
+	Neq          = "Neq"
+	Lt           = "Lt"
+	Gt           = "Gt"
+	Lte          = "Lte"
+	Gte          = "Gte"
+	And          = "And"
+	Or           = "Or"
 )
 
 const (
