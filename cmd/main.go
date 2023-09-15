@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/ghhernandes/rinha-compiler-go"
+	"github.com/ghhernandes/rinha-compiler-go/interpreter"
 )
 
 func main() {
@@ -20,7 +21,8 @@ func main() {
 
 	fmt.Println(fmt.Sprintf("%+v", ast))
 
-	if err := compiler.Eval(os.Stdout, ast); err != nil {
+	i := interpreter.New(os.Stdout, ast)
+	if err := i.Execute(); err != nil {
 		panic(err)
 	}
 }

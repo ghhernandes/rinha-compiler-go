@@ -10,7 +10,7 @@ Interpretador em Golang feito para [rinha de compiler](https://github.com/aripip
 - [x] Function
 - [x] If
 - [ ] Call
-- [ ] Print
+- [x] Print
 - [ ] First
 - [ ] Second
 - [ ] Tuple

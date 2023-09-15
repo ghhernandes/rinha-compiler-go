@@ -1,8 +1,4 @@
-package compiler
-
-import (
-	"strconv"
-)
+package ast
 
 type (
 	Term     any
@@ -38,22 +34,6 @@ const (
 	TUPLE    = "Tuple"
 	PRINT    = "Print"
 )
-
-func stringify(t Term) string {
-	switch t.(type) {
-	case Int:
-		return strconv.Itoa(t.(Int).Value)
-	case Str:
-		return t.(Str).Value
-	case Bool:
-		if t.(Bool).Value {
-			return "true"
-		}
-		return "false"
-	default:
-		return ""
-	}
-}
 
 type (
 	File struct {
