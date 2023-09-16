@@ -7,6 +7,23 @@ import (
 	"testing"
 )
 
+func TestInterpreter(t *testing.T) {
+	f, err := os.Open("../files/fib.json")
+	if err != nil {
+		panic(err)
+	}
+
+	ast, err := compiler.Parse(f)
+	if err != nil {
+		panic(err)
+	}
+
+	interpret := interpreter.New(nil, ast)
+	if err := interpret.Execute(); err != nil {
+		t.Fail()
+	}
+}
+
 func BenchmarkInterpreter(t *testing.B) {
 	f, err := os.Open("../files/fib.json")
 	if err != nil {

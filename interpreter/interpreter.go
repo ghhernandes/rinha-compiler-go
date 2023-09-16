@@ -110,6 +110,9 @@ func (i interpreter) Var(scope ast.Scope, v ast.Var) ast.Term {
 }
 
 func (i interpreter) Print(scope ast.Scope, p ast.Print) ast.Term {
+	if i.w == nil {
+		return nil
+	}
 	node := i.eval(scope, p.Value)
 	switch n := node.(type) {
 	case ast.Int:
