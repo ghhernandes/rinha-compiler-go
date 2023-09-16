@@ -3,13 +3,11 @@ package interpreter
 import (
 	"errors"
 	"fmt"
-	"github.com/ghhernandes/rinha-compiler-go/ast"
 	"io"
-)
+	"strconv"
 
-type (
-	Value any
-	Scope map[string]Value
+	"github.com/ghhernandes/rinha-compiler-go/ast"
+	"github.com/ghhernandes/rinha-compiler-go/runtime"
 )
 
 var (
@@ -27,225 +25,117 @@ func New(w io.Writer, f *ast.File) *interpreter {
 }
 
 func (i interpreter) Execute() error {
-	_, err := eval(make(Scope), i.f.Expression)
-	if err != nil {
-		return err
-	}
-	return err
+	scope := make(map[string]ast.Term)
+	ast.Walk(i, scope, i.f.Expression)
+	return nil
 }
 
-func eval(scope Scope, t ast.Term) (ast.Term, error) {
-	switch t.(type) {
-	case ast.Int, ast.Str, ast.Bool:
-		return t, nil
-	case ast.Let:
-		return let(scope, t.(ast.Let))
-	case ast.Function:
-		return function(scope, t.(ast.Function))
-	case ast.If:
-		return conditional(scope, t.(ast.If))
-	case ast.Binary:
-		return binary(t.(ast.Binary))
-	case ast.Var:
-		return var_(scope, t.(ast.Var))
-	case ast.Print:
-		return print_(scope, t.(ast.Print))
-	case ast.Call:
-		return call(scope, t.(ast.Call))
-	}
-	return nil, nil
+func (i interpreter) eval(scope ast.Scope, expr ast.Term) ast.Term {
+	return ast.Walk(i, scope, expr)
 }
 
-func binary(binary ast.Binary) (ast.Term, error) {
-	left, err := eval(nil, binary.Lhs)
-	if err != nil {
-		return nil, err
-	}
-	right, err := eval(nil, binary.Rhs)
-	if err != nil {
-		return nil, err
-	}
+func (i interpreter) Bool(scope ast.Scope, b ast.Bool) ast.Term {
+	return b
+}
+
+func (i interpreter) Int(scope ast.Scope, n ast.Int) ast.Term {
+	return n
+}
+
+func (i interpreter) Str(scope ast.Scope, s ast.Str) ast.Term {
+	return s
+}
+
+func (i interpreter) Binary(scope ast.Scope, binary ast.Binary) ast.Term {
+	left := i.eval(scope, binary.Lhs)
+	right := i.eval(scope, binary.Rhs)
 	switch binary.Op {
 	case ast.Eq:
-		return eq(left, right)
+		return i.eq(left, right)
 	case ast.Neq:
-		return neq(left, right)
+		return i.neq(left, right)
 	case ast.Lt:
-		return lt(left, right)
+		return i.lt(left, right)
 	case ast.Lte:
-		return lte(left, right)
+		return i.lte(left, right)
 	case ast.Gt:
-		return gt(left, right)
+		return i.gt(left, right)
 	case ast.Gte:
-		return gte(left, right)
+		return i.gte(left, right)
 	case ast.And:
-		return and(left, right)
+		return i.and(left, right)
 	case ast.Or:
-		return or(left, right)
+		return i.or(left, right)
 	case ast.Add:
-		return add(left, right)
+		return i.add(left, right)
 	case ast.Sub:
-		return sub(left, right)
+		return i.sub(left, right)
 	case ast.Mul:
-		return mul(left, right)
+		return i.mul(left, right)
 	case ast.Div:
-		return div(left, right)
+		return i.div(left, right)
 	case ast.Rem:
-		return rem(left, right)
+		return i.rem(left, right)
 	default:
-		return nil, ErrInvalidBinaryOp
+		return nil
 	}
 }
 
-func eq(l, r ast.Term) (ast.Term, error) {
-	switch l.(type) {
-	case ast.Int:
-		return ast.Bool{Kind: ast.BOOL, Value: l.(ast.Int).Value == r.(ast.Int).Value}, nil
-	case ast.Str:
-		return ast.Bool{Kind: ast.BOOL, Value: l.(ast.Str).Value == r.(ast.Str).Value}, nil
-	case ast.Bool:
-		return ast.Bool{Kind: ast.BOOL, Value: l.(ast.Bool).Value == r.(ast.Bool).Value}, nil
-	default:
-		return nil, ErrTypeNotComparable
-	}
+func (i interpreter) Let(scope ast.Scope, l ast.Let) ast.Term {
+	scope[l.Name.Text] = i.eval(scope, l.Value)
+	return i.eval(scope, l.Next)
 }
 
-func neq(l, r ast.Term) (ast.Term, error) {
-	switch l.(type) {
-	case ast.Int:
-		return ast.Bool{Kind: ast.BOOL, Value: l.(ast.Int).Value != r.(ast.Int).Value}, nil
-	case ast.Str:
-		return ast.Bool{Kind: ast.BOOL, Value: l.(ast.Str).Value != r.(ast.Str).Value}, nil
-	case ast.Bool:
-		return ast.Bool{Kind: ast.BOOL, Value: l.(ast.Bool).Value != r.(ast.Bool).Value}, nil
-	default:
-		return nil, ErrTypeNotComparable
-	}
+func (i interpreter) Function(scope ast.Scope, f ast.Function) ast.Term {
+	return f
 }
 
-func lt(l, r ast.Term) (ast.Term, error) {
-	switch l.(type) {
-	case ast.Int:
-		return ast.Bool{Kind: ast.BOOL, Value: l.(ast.Int).Value < r.(ast.Int).Value}, nil
-	case ast.Str:
-		return ast.Bool{Kind: ast.BOOL, Value: l.(ast.Str).Value < r.(ast.Str).Value}, nil
-	default:
-		return nil, ErrTypeNotComparable
-	}
-}
-
-func lte(l, r ast.Term) (ast.Term, error) {
-	switch l.(type) {
-	case ast.Int:
-		return ast.Bool{Kind: ast.BOOL, Value: l.(ast.Int).Value <= r.(ast.Int).Value}, nil
-	case ast.Str:
-		return ast.Bool{Kind: ast.BOOL, Value: l.(ast.Str).Value <= r.(ast.Str).Value}, nil
-	default:
-		return nil, ErrTypeNotComparable
-	}
-}
-
-func gt(l, r ast.Term) (ast.Term, error) {
-	switch l.(type) {
-	case ast.Int:
-		return ast.Bool{Kind: ast.BOOL, Value: l.(ast.Int).Value > r.(ast.Int).Value}, nil
-	case ast.Str:
-		return ast.Bool{Kind: ast.BOOL, Value: l.(ast.Str).Value > r.(ast.Str).Value}, nil
-	default:
-		return nil, ErrTypeNotComparable
-	}
-}
-
-func gte(l, r ast.Term) (ast.Term, error) {
-	switch l.(type) {
-	case ast.Int:
-		return ast.Bool{Kind: ast.BOOL, Value: l.(ast.Int).Value >= r.(ast.Int).Value}, nil
-	case ast.Str:
-		return ast.Bool{Kind: ast.BOOL, Value: l.(ast.Str).Value >= r.(ast.Str).Value}, nil
-	default:
-		return nil, ErrTypeNotComparable
-	}
-}
-
-func and(l, r ast.Term) (ast.Term, error) {
-	return ast.Bool{Kind: ast.BOOL, Value: l.(ast.Bool).Value && r.(ast.Bool).Value}, nil
-}
-
-func or(l, r ast.Term) (ast.Term, error) {
-	return ast.Bool{Kind: ast.BOOL, Value: l.(ast.Bool).Value || r.(ast.Bool).Value}, nil
-}
-
-func add(l, r ast.Term) (ast.Term, error) {
-	return ast.Int{Kind: ast.INT, Value: l.(ast.Int).Value + r.(ast.Int).Value}, nil
-}
-
-func sub(l, r ast.Term) (ast.Term, error) {
-	return ast.Int{Kind: ast.INT, Value: l.(ast.Int).Value - r.(ast.Int).Value}, nil
-}
-
-func mul(l, r ast.Term) (ast.Term, error) {
-	return ast.Int{Kind: ast.INT, Value: l.(ast.Int).Value * r.(ast.Int).Value}, nil
-}
-
-func div(l, r ast.Term) (ast.Term, error) {
-	return ast.Int{Kind: ast.INT, Value: l.(ast.Int).Value / r.(ast.Int).Value}, nil
-}
-
-func rem(l, r ast.Term) (ast.Term, error) {
-	return ast.Int{Kind: ast.INT, Value: l.(ast.Int).Value % r.(ast.Int).Value}, nil
-}
-
-func let(scope Scope, l ast.Let) (ast.Term, error) {
-	value, err := eval(scope, l.Value)
-	if err != nil {
-		return nil, err
-	}
-	switch value.(type) {
-	case ast.Int, ast.Str, ast.Bool:
-		scope[l.Name.Text] = value
-	case ast.Function:
-		scope[l.Name.Text] = ast.Function{Kind: ast.FUNCTION, Parameters: value.(ast.Function).Parameters, Value: value}
-	}
-
-	return eval(scope, l.Next)
-}
-
-func function(scope Scope, f ast.Function) (ast.Term, error) {
-	return f, nil
-}
-
-func conditional(scope Scope, cond ast.If) (ast.Term, error) {
-	condition, err := eval(scope, cond.Condition)
-	if err != nil {
-		return nil, err
-	}
+func (i interpreter) If(scope ast.Scope, cond ast.If) ast.Term {
+	condition := i.eval(scope, cond.Condition)
 	if condition.(ast.Bool).Value {
-		return eval(scope, cond.Then)
+		return i.eval(scope, cond.Then)
 	}
-	return eval(scope, cond.Otherwise)
+	return i.eval(scope, cond.Otherwise)
 }
 
-func var_(scope Scope, v ast.Var) (ast.Term, error) {
-	return scope[v.Text], nil
+func (i interpreter) Var(scope ast.Scope, v ast.Var) ast.Term {
+	var (
+		r  ast.Term
+		ok bool
+	)
+	if r, ok = scope[v.Text]; !ok {
+		runtime.Error(v.Location, fmt.Sprintf("undefined variable %s", v.Text))
+	}
+	return r
 }
 
-func print_(scope Scope, p ast.Print) (ast.Term, error) {
-	t, err := eval(scope, p.Value)
-	if err != nil {
-		return nil, err
-	}
-
-	switch t.(type) {
+func (i interpreter) Print(scope ast.Scope, p ast.Print) ast.Term {
+	node := i.eval(scope, p.Value)
+	switch n := node.(type) {
 	case ast.Int:
-		fmt.Println(t.(ast.Int).Value)
+		i.w.Write([]byte(strconv.Itoa(int(n.Value))))
 	case ast.Str:
-		fmt.Println(t.(ast.Str).Value)
+		i.w.Write([]byte(n.Value))
 	case ast.Bool:
-		fmt.Println(t.(ast.Bool).Value)
+		i.w.Write([]byte(strconv.FormatBool(n.Value)))
 	}
-	return nil, nil
+	return nil
 }
 
-func call(scope Scope, c ast.Call) (ast.Term, error) {
-	return nil, nil
+func (i interpreter) Call(scope ast.Scope, c ast.Call) ast.Term {
+	callee := i.eval(scope, c.Callee)
+	switch fn := callee.(type) {
+	case ast.Function:
+		if len(fn.Parameters) != len(c.Arguments) {
+			runtime.Error(c.Location, "wrong number of arguments")
+		}
+
+		newScope := scope.Clone()
+		for index := 0; index < len(fn.Parameters); index++ {
+			newScope[fn.Parameters[index].Text] = i.eval(scope, c.Arguments[index])
+		}
+
+		return i.eval(newScope, fn.Value)
+	}
+	return nil
 }

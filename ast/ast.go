@@ -67,10 +67,10 @@ type (
 	}
 
 	Call struct {
-		Kind     string   `json:"kind"`
-		Callee   Term     `json:"callee"`
-		Args     []Term   `json:"args"`
-		Location Location `json:"location"`
+		Kind      string   `json:"kind"`
+		Callee    Term     `json:"callee"`
+		Arguments []Term   `json:"arguments"`
+		Location  Location `json:"location"`
 	}
 
 	Let struct {
@@ -89,7 +89,7 @@ type (
 
 	Int struct {
 		Kind     string   `json:"kind"`
-		Value    int      `json:"value"`
+		Value    int32    `json:"value"`
 		Location Location `json:"location"`
 	}
 

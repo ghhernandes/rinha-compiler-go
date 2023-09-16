@@ -146,7 +146,7 @@ func unmarshalCall(data []byte) (Call, error) {
 		return Call{}, err
 	}
 
-	bArgs, err := json.Marshal(c.Args)
+	bArgs, err := json.Marshal(c.Arguments)
 	if err != nil {
 		return Call{}, err
 	}
@@ -156,7 +156,7 @@ func unmarshalCall(data []byte) (Call, error) {
 		return Call{}, err
 	}
 
-	c.Args, err = unmarshalTerms(bArgs)
+	c.Arguments, err = unmarshalTerms(bArgs)
 	return c, err
 }
 
