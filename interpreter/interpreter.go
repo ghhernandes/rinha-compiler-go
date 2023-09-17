@@ -1,12 +1,10 @@
 package interpreter
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"io"
 	"strconv"
-	"strings"
 
 	"github.com/ghhernandes/rinha-compiler-go/ast"
 	"github.com/ghhernandes/rinha-compiler-go/runtime"
