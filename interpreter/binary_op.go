@@ -1,7 +1,8 @@
 package interpreter
 
 import (
-	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/ghhernandes/rinha-compiler-go/ast"
 )
@@ -91,14 +92,14 @@ func (i interpreter) add(l, r ast.Term) ast.Term {
 		case ast.Int:
 			return ast.Int{Kind: ast.INT, Value: left.Value + right.Value}
 		case ast.Str:
-			return ast.Str{Kind: ast.STR, Value: fmt.Sprintf("%d%s", left.Value, right.Value)}
+			return ast.Str{Kind: ast.STR, Value: strings.Join([]string{strconv.Itoa(int(left.Value)), right.Value}, "")}
 		}
 	case ast.Str:
 		switch right := r.(type) {
 		case ast.Int:
-			return ast.Str{Kind: ast.STR, Value: fmt.Sprintf("%s%d", left.Value, right.Value)}
+			return ast.Str{Kind: ast.STR, Value: strings.Join([]string{left.Value, strconv.Itoa(int(right.Value))}, "")}
 		case ast.Str:
-			return ast.Str{Kind: ast.STR, Value: fmt.Sprintf("%s%s", left.Value, right.Value)}
+			return ast.Str{Kind: ast.STR, Value: left.Value + right.Value}
 		}
 	}
 	return nil
