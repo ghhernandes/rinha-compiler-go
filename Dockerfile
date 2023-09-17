@@ -8,4 +8,6 @@ RUN git clone https://github.com/ghhernandes/rinha-compiler-go.git /var/app
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o rinha /var/app/cmd/main.go
 
+RUN cp rinha /usr/local/bin
+
 ENTRYPOINT [ "/bin/bash" ]

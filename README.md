@@ -9,10 +9,24 @@ Interpretador em Golang feito para [rinha de compiler](https://github.com/aripip
 - [x] Let
 - [x] Function
 - [x] If
-- [ ] Call
+- [x] Call
 - [x] Print
 - [ ] First
 - [ ] Second
 - [ ] Tuple
 
+
+## Build
+
+```
+docker build -t rinha .
+```
+
+## Run
+
+```
+docker run -it rinha
+
+$ rinha files/fib.json
+```
 
