@@ -167,6 +167,8 @@ func (i interpreter) Call(scope ast.Scope, c ast.Call) ast.Term {
 		}
 
 		var b bytes.Buffer
+
+		newScope := scope.Clone()
 		if v, ok := c.Callee.(ast.Var); ok {
 			b.WriteString(v.Text)
 		} else {
@@ -178,7 +180,7 @@ func (i interpreter) Call(scope ast.Scope, c ast.Call) ast.Term {
 
 		for index := 0; index < len(fn.Parameters); index++ {
 			value := i.eval(scope, c.Arguments[index])
-			scope[fn.Parameters[index].Text] = value
+			newScope[fn.Parameters[index].Text] = value
 			switch v := value.(type) {
 			case ast.Int:
 				b.WriteString(strconv.FormatInt(int64(v.Value), 10))
@@ -193,7 +195,7 @@ func (i interpreter) Call(scope ast.Scope, c ast.Call) ast.Term {
 		if memoized, ok := i.mem[b.String()]; ok {
 			return memoized
 		}
-		evaluated := i.eval(scope, fn.Value)
+		evaluated := i.eval(newScope, fn.Value)
 		i.mem[b.String()] = evaluated
 		return evaluated
 	default:
