@@ -51,6 +51,10 @@ func unmarshalTerm(data []byte) (Term, error) {
 		return unmarshalTuple(data)
 	case PRINT:
 		return unmarshalPrint(data)
+	case FIRST:
+		return unmarshalFirst(data)
+	case SECOND:
+		return unmarshalSecond(data)
 	default:
 		return nil, fmt.Errorf("invalid term kind: %s", t.Kind)
 	}
@@ -309,4 +313,43 @@ func unmarshalTerms(data []byte) ([]Term, error) {
 		}
 	}
 	return terms, nil
+}
+
+func unmarshalFirst(data []byte) (First, error) {
+	var (
+		f   First
+		err error
+	)
+
+	if err := json.Unmarshal(data, &f); err != nil {
+		return First{}, err
+	}
+
+	bValue, err := json.Marshal(f.Value)
+	if err != nil {
+		return First{}, err
+	}
+
+	f.Value, err = unmarshalTerm(bValue)
+	return f, err
+}
+
+func unmarshalSecond(data []byte) (Second, error) {
+	var (
+		s   Second
+		err error
+	)
+
+	if err := json.Unmarshal(data, &s); err != nil {
+		return Second{}, err
+	}
+
+	bValue, err := json.Marshal(s.Value)
+	if err != nil {
+		return Second{}, err
+	}
+
+	s.Value, err = unmarshalTerm(bValue)
+	return s, err
+
 }

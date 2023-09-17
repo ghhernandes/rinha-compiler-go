@@ -33,6 +33,8 @@ const (
 	BINARY   = "Binary"
 	TUPLE    = "Tuple"
 	PRINT    = "Print"
+	FIRST    = "First"
+	SECOND   = "Second"
 )
 
 type (
