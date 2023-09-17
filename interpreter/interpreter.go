@@ -11,12 +11,13 @@ import (
 )
 
 type interpreter struct {
-	w io.Writer
-	f *ast.File
+	w   io.Writer
+	f   *ast.File
+	mem map[string]ast.Term
 }
 
 func New(w io.Writer, f *ast.File) *interpreter {
-	return &interpreter{w: w, f: f}
+	return &interpreter{w: w, f: f, mem: make(map[string]ast.Term)}
 }
 
 func (i interpreter) Execute() error {
@@ -163,14 +164,40 @@ func (i interpreter) Call(scope ast.Scope, c ast.Call) ast.Term {
 			runtime.Error(c.Location, "wrong number of arguments")
 		}
 
+		var b bytes.Buffer
+		if v, ok := c.Callee.(ast.Var); ok {
+			b.WriteString(v.Text)
+		} else {
+			b.WriteString(strconv.FormatInt(int64(fn.Location.Start), 10))
+			b.WriteString(",")
+			b.WriteString(strconv.FormatInt(int64(fn.Location.End), 10))
+		}
+		b.WriteString(",")
+
 		newScope := scope.Clone()
 		for index := 0; index < len(fn.Parameters); index++ {
-			newScope[fn.Parameters[index].Text] = i.eval(scope, c.Arguments[index])
+			value := i.eval(scope, c.Arguments[index])
+			newScope[fn.Parameters[index].Text] = value
+			switch v := value.(type) {
+			case ast.Int:
+				b.WriteString(strconv.FormatInt(int64(v.Value), 10))
+			case ast.Str:
+				b.WriteString(v.Value)
+			case ast.Bool:
+				b.WriteString(strconv.FormatBool(v.Value))
+			}
+			b.WriteString(",")
 		}
 
-		return i.eval(newScope, fn.Value)
+		if memoized, ok := i.mem[b.String()]; ok {
+			return memoized
+		}
+		evaluated := i.eval(newScope, fn.Value)
+		i.mem[b.String()] = evaluated
+		return evaluated
+	default:
+		return nil
 	}
-	return nil
 }
 
 func (i interpreter) Tuple(scope ast.Scope, t ast.Tuple) ast.Term {
