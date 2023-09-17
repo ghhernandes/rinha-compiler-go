@@ -1,6 +1,8 @@
 package interpreter
 
 import (
+	"fmt"
+
 	"github.com/ghhernandes/rinha-compiler-go/ast"
 )
 
@@ -83,14 +85,23 @@ func (i interpreter) or(l, r ast.Term) ast.Term {
 }
 
 func (i interpreter) add(l, r ast.Term) ast.Term {
-	switch n := l.(type) {
+	switch left := l.(type) {
 	case ast.Int:
-		return ast.Int{Kind: ast.INT, Value: n.Value + r.(ast.Int).Value}
+		switch right := r.(type) {
+		case ast.Int:
+			return ast.Int{Kind: ast.INT, Value: left.Value + right.Value}
+		case ast.Str:
+			return ast.Str{Kind: ast.STR, Value: fmt.Sprintf("%d%s", left.Value, right.Value)}
+		}
 	case ast.Str:
-		return ast.Str{Kind: ast.STR, Value: n.Value + r.(ast.Str).Value}
-	default:
-		return nil
+		switch right := r.(type) {
+		case ast.Int:
+			return ast.Str{Kind: ast.STR, Value: fmt.Sprintf("%s%d", left.Value, right.Value)}
+		case ast.Str:
+			return ast.Str{Kind: ast.STR, Value: fmt.Sprintf("%s%s", left.Value, right.Value)}
+		}
 	}
+	return nil
 }
 
 func (i interpreter) sub(l, r ast.Term) ast.Term {
