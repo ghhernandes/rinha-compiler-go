@@ -1,10 +1,12 @@
 package interpreter
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 
 	"github.com/ghhernandes/rinha-compiler-go/ast"
 	"github.com/ghhernandes/rinha-compiler-go/runtime"
@@ -122,6 +124,7 @@ func (i interpreter) Print(scope ast.Scope, p ast.Print) ast.Term {
 	case ast.Bool:
 		i.w.Write([]byte(strconv.FormatBool(n.Value)))
 	}
+	i.w.Write([]byte("\n"))
 	return nil
 }
 
