@@ -23,7 +23,7 @@ func New(w io.Writer, f *ast.File) *interpreter {
 }
 
 func (i interpreter) Execute() error {
-	scope := make(map[string]ast.Term)
+	scope := make(ast.Scope, 8)
 	ast.Walk(i, scope, i.f.Expression)
 	return nil
 }
@@ -176,10 +176,9 @@ func (i interpreter) Call(scope ast.Scope, c ast.Call) ast.Term {
 		}
 		b.WriteString(MEMOIZE_DELIMITER)
 
-		newScope := scope.Clone()
 		for index := 0; index < len(fn.Parameters); index++ {
 			value := i.eval(scope, c.Arguments[index])
-			newScope[fn.Parameters[index].Text] = value
+			scope[fn.Parameters[index].Text] = value
 			switch v := value.(type) {
 			case ast.Int:
 				b.WriteString(strconv.FormatInt(int64(v.Value), 10))
@@ -194,7 +193,7 @@ func (i interpreter) Call(scope ast.Scope, c ast.Call) ast.Term {
 		if memoized, ok := i.mem[b.String()]; ok {
 			return memoized
 		}
-		evaluated := i.eval(newScope, fn.Value)
+		evaluated := i.eval(scope, fn.Value)
 		i.mem[b.String()] = evaluated
 		return evaluated
 	default:
