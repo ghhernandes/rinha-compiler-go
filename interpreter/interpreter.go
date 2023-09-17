@@ -28,7 +28,7 @@ func (i interpreter) Execute() error {
 	return nil
 }
 
-func (i interpreter) printTuple(b bytes.Buffer, scope ast.Scope, t ast.Tuple) {
+func (i interpreter) printTuple(b *bytes.Buffer, scope ast.Scope, t ast.Tuple) {
 	printValueFn := func(node ast.Term) {
 		switch n := node.(type) {
 		case ast.Int:
@@ -147,7 +147,7 @@ func (i interpreter) Print(scope ast.Scope, p ast.Print) ast.Term {
 	case ast.Bool:
 		b.WriteString(strconv.FormatBool(n.Value))
 	case ast.Tuple:
-		i.printTuple(b, scope, n)
+		i.printTuple(&b, scope, n)
 	case ast.Function:
 		b.WriteString("<#closure>")
 	default:
