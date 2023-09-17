@@ -23,7 +23,7 @@ func New(w io.Writer, f *ast.File) *interpreter {
 }
 
 func (i interpreter) Execute() error {
-	scope := make(ast.Scope, 8)
+	scope := make(ast.Scope, ast.SCOPE_DEFAULT_SIZE)
 	ast.Walk(i, scope, i.f.Expression)
 	return nil
 }
