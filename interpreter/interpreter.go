@@ -1,18 +1,13 @@
 package interpreter
 
 import (
-	"errors"
+	"bytes"
 	"fmt"
 	"io"
 	"strconv"
 
 	"github.com/ghhernandes/rinha-compiler-go/ast"
 	"github.com/ghhernandes/rinha-compiler-go/runtime"
-)
-
-var (
-	ErrTypeNotComparable = errors.New("type not comparable")
-	ErrInvalidBinaryOp   = errors.New("invalid binary operator")
 )
 
 type interpreter struct {
@@ -28,6 +23,32 @@ func (i interpreter) Execute() error {
 	scope := make(map[string]ast.Term)
 	ast.Walk(i, scope, i.f.Expression)
 	return nil
+}
+
+func (i interpreter) printTuple(b bytes.Buffer, scope ast.Scope, t ast.Tuple) {
+	printValueFn := func(node ast.Term) {
+		switch n := node.(type) {
+		case ast.Int:
+			b.WriteString(strconv.FormatInt(int64(n.Value), 10))
+		case ast.Str:
+			b.WriteString(n.Value)
+		case ast.Bool:
+			b.WriteString(strconv.FormatBool(n.Value))
+		case ast.Function:
+			b.WriteString("<#closure>")
+		default:
+			b.WriteString("nil")
+		}
+	}
+
+	first := i.eval(scope, t.First)
+	second := i.eval(scope, t.Second)
+
+	b.WriteString("(")
+	printValueFn(first)
+	b.WriteString(", ")
+	printValueFn(second)
+	b.WriteString(")")
 }
 
 func (i interpreter) eval(scope ast.Scope, expr ast.Term) ast.Term {
@@ -113,16 +134,24 @@ func (i interpreter) Print(scope ast.Scope, p ast.Print) ast.Term {
 	if i.w == nil {
 		return nil
 	}
+	var b bytes.Buffer
 	node := i.eval(scope, p.Value)
 	switch n := node.(type) {
 	case ast.Int:
-		i.w.Write([]byte(strconv.Itoa(int(n.Value))))
+		b.WriteString(strconv.FormatInt(int64(n.Value), 10))
 	case ast.Str:
-		i.w.Write([]byte(n.Value))
+		b.WriteString(n.Value)
 	case ast.Bool:
-		i.w.Write([]byte(strconv.FormatBool(n.Value)))
+		b.WriteString(strconv.FormatBool(n.Value))
+	case ast.Tuple:
+		i.printTuple(b, scope, n)
+	case ast.Function:
+		b.WriteString("<#closure>")
+	default:
+		b.WriteString("nil")
 	}
-	i.w.Write([]byte("\n"))
+	b.WriteString("\n")
+	i.w.Write(b.Bytes())
 	return nil
 }
 
@@ -141,5 +170,27 @@ func (i interpreter) Call(scope ast.Scope, c ast.Call) ast.Term {
 
 		return i.eval(newScope, fn.Value)
 	}
+	return nil
+}
+
+func (i interpreter) Tuple(scope ast.Scope, t ast.Tuple) ast.Term {
+	return t
+}
+
+func (i interpreter) First(scope ast.Scope, f ast.First) ast.Term {
+	node := i.eval(scope, f.Value)
+	if tuple, ok := node.(ast.Tuple); ok {
+		return i.eval(scope, tuple.First)
+	}
+	runtime.Error(f.Location, "not a tuple")
+	return nil
+}
+
+func (i interpreter) Second(scope ast.Scope, s ast.Second) ast.Term {
+	node := i.eval(scope, s.Value)
+	if tuple, ok := node.(ast.Tuple); ok {
+		return i.eval(scope, tuple.Second)
+	}
+	runtime.Error(s.Location, "not a tuple")
 	return nil
 }

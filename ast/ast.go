@@ -127,4 +127,16 @@ type (
 		Value    Term     `json:"value"`
 		Location Location `json:"location"`
 	}
+
+	First struct {
+		Kind     string   `json:"kind"`
+		Value    Term     `json:"value"`
+		Location Location `json:"location"`
+	}
+
+	Second struct {
+		Kind     string   `json:"kind"`
+		Value    Term     `json:"value"`
+		Location Location `json:"location"`
+	}
 )

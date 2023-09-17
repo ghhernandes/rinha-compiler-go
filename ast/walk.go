@@ -11,6 +11,9 @@ type Visitor interface {
 	Var(Scope, Var) Term
 	Print(Scope, Print) Term
 	Call(Scope, Call) Term
+	Tuple(Scope, Tuple) Term
+	First(Scope, First) Term
+	Second(Scope, Second) Term
 }
 
 func Walk(v Visitor, scope Scope, node Term) Term {
@@ -31,6 +34,12 @@ func Walk(v Visitor, scope Scope, node Term) Term {
 		return v.Print(scope, n)
 	case Call:
 		return v.Call(scope, n)
+	case Tuple:
+		return v.Tuple(scope, n)
+	case First:
+		return v.First(scope, n)
+	case Second:
+		return v.Second(scope, n)
 	}
 	return nil
 }
