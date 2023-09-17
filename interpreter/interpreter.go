@@ -10,6 +10,8 @@ import (
 	"github.com/ghhernandes/rinha-compiler-go/runtime"
 )
 
+const MEMOIZE_DELIMITER = ","
+
 type interpreter struct {
 	w   io.Writer
 	f   *ast.File
@@ -169,10 +171,10 @@ func (i interpreter) Call(scope ast.Scope, c ast.Call) ast.Term {
 			b.WriteString(v.Text)
 		} else {
 			b.WriteString(strconv.FormatInt(int64(fn.Location.Start), 10))
-			b.WriteString(",")
+			b.WriteString(MEMOIZE_DELIMITER)
 			b.WriteString(strconv.FormatInt(int64(fn.Location.End), 10))
 		}
-		b.WriteString(",")
+		b.WriteString(MEMOIZE_DELIMITER)
 
 		newScope := scope.Clone()
 		for index := 0; index < len(fn.Parameters); index++ {
@@ -186,7 +188,7 @@ func (i interpreter) Call(scope ast.Scope, c ast.Call) ast.Term {
 			case ast.Bool:
 				b.WriteString(strconv.FormatBool(v.Value))
 			}
-			b.WriteString(",")
+			b.WriteString(MEMOIZE_DELIMITER)
 		}
 
 		if memoized, ok := i.mem[b.String()]; ok {
