@@ -25,8 +25,6 @@ docker build -t rinha .
 ## Run
 
 ```
-docker run -it rinha
-
-$ rinha files/fib.json
+docker run -v {json_ast_filename}:/var/rinha/source.rinha.json rinha
 ```
 
