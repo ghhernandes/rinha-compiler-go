@@ -8,7 +8,6 @@ import (
 )
 
 func BenchmarkCompiler(t *testing.B) {
-
 	f, err := os.Open("files/fib.json")
 	if err != nil {
 		panic(err)
@@ -19,10 +18,10 @@ func BenchmarkCompiler(t *testing.B) {
 		panic(err)
 	}
 
-	interpret := interpreter.New(nil, ast)
+	t.ResetTimer()
 
 	for i := 0; i < t.N; i++ {
-		if err := interpret.Execute(); err != nil {
+		if err := interpreter.New(nil, ast).Execute(); err != nil {
 			panic(err)
 		}
 	}
