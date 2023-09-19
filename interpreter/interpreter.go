@@ -19,7 +19,7 @@ type interpreter struct {
 }
 
 func New(w io.Writer, f *ast.File) *interpreter {
-	return &interpreter{w: w, f: f, mem: make(map[string]ast.Term)}
+	return &interpreter{w: w, f: f, mem: make(map[string]ast.Term, 32)}
 }
 
 func (i interpreter) Execute() error {
@@ -155,7 +155,7 @@ func (i interpreter) Print(scope ast.Scope, p ast.Print) ast.Term {
 	}
 	b.WriteString("\n")
 	i.w.Write(b.Bytes())
-	return nil
+	return node
 }
 
 func (i interpreter) Call(scope ast.Scope, c ast.Call) ast.Term {
