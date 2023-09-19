@@ -1,13 +1,13 @@
-FROM golang:1.21.1
+FROM golang:1.21.1-bookworm as builder
 
-WORKDIR /var/app
+WORKDIR /app/rinha-go
 
-RUN apt update && apt upgrade -y
+COPY . .
 
-RUN git clone https://github.com/ghhernandes/rinha-compiler-go.git /var/app
+RUN GOOS=linux go build -o rinha cmd/main.go
 
-RUN GOOS=linux go build -o rinha /var/app/cmd/main.go
+FROM debian:bookworm-slim
 
-RUN cp rinha /usr/local/bin
+COPY --from=builder /app/rinha-go/rinha /usr/local/bin/rinha
 
-ENTRYPOINT [ "/bin/bash" ]
+ENTRYPOINT [ "rinha", "/var/rinha/source.rinha.json"]
