@@ -11,3 +11,14 @@ func (s Scope) Clone() Scope {
 	}
 	return clone
 }
+
+func (s Scope) Zip(other Scope) Scope {
+    clone := make(Scope, len(s)+len(other))
+    for k, v := range s {
+        clone[k] = v
+    }
+    for k, v := range other {
+        clone[k] = v
+    }
+    return clone
+}

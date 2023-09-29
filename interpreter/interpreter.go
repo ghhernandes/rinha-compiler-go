@@ -111,7 +111,13 @@ func (i interpreter) Let(scope ast.Scope, l ast.Let) ast.Term {
 }
 
 func (i interpreter) Function(scope ast.Scope, f ast.Function) ast.Term {
-	return f
+	return ast.Function{
+		Kind:       f.Kind,
+		Parameters: f.Parameters,
+		Value:      f.Value,
+		Location:   f.Location,
+		Scope:      scope.Clone(),
+	}
 }
 
 func (i interpreter) If(scope ast.Scope, cond ast.If) ast.Term {
@@ -168,7 +174,8 @@ func (i interpreter) Call(scope ast.Scope, c ast.Call) ast.Term {
 
 		var b bytes.Buffer
 
-		newScope := scope.Clone()
+		newScope := scope.Zip(fn.Scope)
+
 		if v, ok := c.Callee.(ast.Var); ok {
 			b.WriteString(v.Text)
 		} else {

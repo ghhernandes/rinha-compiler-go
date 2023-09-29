@@ -66,6 +66,7 @@ type (
 		Parameters []Parameter `json:"parameters"`
 		Value      Term        `json:"value"`
 		Location   Location    `json:"location"`
+		Scope      Scope       `json:"-"`
 	}
 
 	Call struct {
